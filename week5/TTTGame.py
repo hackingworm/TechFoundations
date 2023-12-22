@@ -56,8 +56,7 @@ class Game:
             [None, None, None],
         ]
 
-        """Member "dead_player" just used to indicate the situation that the game draws. In such case, "get_winner()" method will return "dead_player" """
-        self.dead_player = Player()
+        self.winner = None
         self.O_player = O_player
         self.X_player = X_player
         self.current_player = O_player
@@ -77,57 +76,59 @@ class Game:
     def check_line(self, first, second, third):
         if None == first:
             if None == second or None == third or second == third:
-                return None
-            return self.dead_player
+                return "continue"
+            return "draw"
 
         if first == second and first == third:
-            return first
+            return "succeed"
 
         if first != second and None != second or first != third and None != third:
-            return self.dead_player
-        return None
+            return "draw"
+        return "continue"
 
     def get_winner(self):
-        result = self.dead_player
+        result = "draw"
 
         # Check 3 "horizonal" lines
         for row in self.board:
             line_result = self.check_line(row[0], row[1], row[2])
             # if a winner found
-            if self.O_player == line_result or self.X_player == line_result:
-                return line_result
+            if "succeed" == line_result:
+                self.winner = row[0]
+                return "succeed"
             # if no winner till now but the game will go on
-            if None == line_result:
-                result = None
+            if "continue" == line_result:
+                result = "continue"
 
         # Check 3 "vertical" lines
-        col = 0
-        while col < 3:
+        for col in range(3):
             line_result = self.check_line(self.board[0][col], self.board[1][col], self.board[2][col])
-            if self.O_player == line_result or self.X_player == line_result:
-                return line_result
-            if None == line_result:
-                result = None
-            col += 1
+            if "succeed" == line_result:
+                self.winner = self.board[0][col]
+                return "succeed"
+            if "continue" == line_result:
+                result = "continue"
 
         # Check 2 "diagonal" lines
         line_result = self.check_line(self.board[0][0], self.board[1][1], self.board[2][2])
-        if self.O_player == line_result or self.X_player == line_result:
-            return line_result
-        if None == line_result:
-            result = None
+        if "succeed" == line_result:
+            self.winner = self.board[0][0]
+            return "succeed"
+        if "continue" == line_result:
+            result = "continue"
 
         line_result = self.check_line(self.board[0][2], self.board[1][1], self.board[2][0])
-        if self.O_player == line_result or self.X_player == line_result:
-            return line_result
-        if None == line_result:
-            result = None
+        if "succeed" == line_result:
+            self.winner = self.board[0][2]
+            return "succeed"
+        if "continue" == line_result:
+            result = "continue"
 
         return result
 
     def run(self):
-        winner = None
-        while winner == None:
+        result = "continue"
+        while "continue" == result:
             # If it's a human player, the show the game board and a prompt
             if not self.current_player.is_bot():
                 self.show_board()
@@ -139,13 +140,13 @@ class Game:
             else:
                 self.current_player = self.O_player
             # Get winner
-            winner = self.get_winner()
+            result = self.get_winner()
 
         # Game over. Show the final game board and the winner or 'draw'
         self.show_board()
-        if self.O_player == winner:
+        if self.O_player == self.winner:
             print("O wins!")
-        elif self.X_player == winner:
+        elif self.X_player == self.winner:
             print("X wins!")
         else:
             print("It draws.")
